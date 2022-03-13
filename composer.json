@@ -1,0 +1,16 @@
+{
+    "name": "nagasari/http",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Nagasari\\Http\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Noor Wachid"
+        }
+    ],
+    "require": {}
+}
