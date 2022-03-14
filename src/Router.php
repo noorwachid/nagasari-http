@@ -13,7 +13,7 @@ class Router
 
     public static function set(string $path, string $controller): Route
     {
-        $route = new Route($path, $controller);
+        $route = new Route(self::$groupPath.$path, $controller);
         self::$routes[] = $route;
         return $route;
     }
