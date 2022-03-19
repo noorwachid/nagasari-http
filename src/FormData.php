@@ -2,21 +2,58 @@
 
 namespace Nagasari\Http;
 
-class RequestFileManager
+class FormData
 {
-    public static function composeFromRawBody(string $rawData): array
+    public function composePostMethod(): array
     {
+        // swap second keys
+        $rootNode = [];
+        foreach ($_FILES as $key => $value) {
+            foreach ($value as $key2 => $value2) {
+                $rootNode[$key2][$key] = $value2;
+            }
+        }
+
+        // swap first and last keys
+        self::walk($_POST, $rootNode['name'], $rootNode['tmp_name'], $rootNode['type'], $rootNode['size'], $rootNode['error']);
+
+        // remove unused variable
+        unset($rootNode);
+
+        return $_POST;
+    }
+
+    public static function composeNotPostMethod(): array
+    {
+        // TODO: fix if the request is list then index
+        //
+        // request:
+        // indexA[subindexA] = 1
+        // indexA[] = 1
+        //
+        // parsed:
+        // [
+        //     "indexA" => [
+        //         "subindexA" => [
+        //             "definitionOfSubindexA" => 1
+        //         ],
+        //         // The deffinition of indexA is missing
+        //     ]
+        // ]
+        
+        $rawBody = file_get_contents('php://input');
+
         // determine boundary
-        $boundary = substr($rawData, 0, strpos($rawData, "\r\n"));
+        $boundary = substr($rawBody, 0, strpos($rawBody, "\r\n"));
 
 
         if (empty($boundary)) {
-            parse_str($rawData, $_POST);
+            parse_str($rawBody, $_POST);
             return $_POST;
         }
 
         // fetch each part
-        $parts = array_slice(explode($boundary, $rawData), 1);
+        $parts = array_slice(explode($boundary, $rawBody), 1);
 
         foreach ($parts as $part) {
             // if this is the last part, break
@@ -49,7 +86,7 @@ class RequestFileManager
 
                     $errorCode = file_put_contents($path, $body);
 
-                    self::placeInBody($key, new RequestFile(
+                    self::placeInBody($key, new File(
                         $originalPath, $path, $type, strlen($body), $errorCode
                     ));
                 }
@@ -65,25 +102,6 @@ class RequestFileManager
         return $_POST;
     }
 
-    public static function compose()
-    {
-        // swap second keys
-        $rootNode = [];
-        foreach ($_FILES as $key => $value) {
-            foreach ($value as $key2 => $value2) {
-                $rootNode[$key2][$key] = $value2;
-            }
-        }
-
-        // swap first and last keys
-        self::walk($_POST, $rootNode['name'], $rootNode['tmp_name'], $rootNode['type'], $rootNode['size'], $rootNode['error']);
-
-        // remove unused variable
-        unset($rootNode);
-
-        return $_POST;
-    }
-
     private static function walk(&$value, &$originalPath, &$path, &$type, &$size, &$errorCode): void
     {
         if (is_array($originalPath)) {
@@ -91,11 +109,11 @@ class RequestFileManager
                 self::walk($value[$key], $originalPathChild, $path[$key], $type[$key], $size[$key], $errorCode[$key]);
             }
         } else {
-            $value = new RequestFile($originalPath, $path, $type, $size, $errorCode);
+            $value = new File($originalPath, $path, $type, $size, $errorCode);
         }
     }
 
-    private static function placeInBody(string $key, string|RequestFile $value)
+    private static function placeInBody(string $key, string|File $value)
     {
         $keys =  explode('[', str_replace(']', '', $key));
         $previous = null;

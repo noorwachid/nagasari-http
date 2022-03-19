@@ -1,6 +1,6 @@
 <?php
 
-namespace Nagasari\Http;
+namespace Nagasari\Message;
 
 class View extends Response
 {
@@ -18,10 +18,11 @@ class View extends Response
         
         ob_start();
 
-        require ViewManager::$path.$path.ViewManager::$extension;
+        require $path.'.html.php';
 
-        if (!empty($this->basePath))
-            require ViewManager::$path.$this->basePath.ViewManager::$extension;
+        if (!empty($this->basePath)) {
+            require $this->basePath.'.html.php';
+        }
         
         parent::__construct(ob_get_clean());
     }
@@ -42,7 +43,12 @@ class View extends Response
         $this->sectionMap[array_pop($this->sectionStack)] = ob_get_clean();
     }
 
-    private function render(string $section, string $fallbackValue = ''): string 
+    private function set(string $section, string $value): void
+    {
+        $this->sectionMap[$section] = $value;
+    }
+
+    private function get(string $section, string $fallbackValue = ''): string 
     {
         return $this->sectionMap[$section] ?? '';
     }

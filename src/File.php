@@ -2,7 +2,7 @@
 
 namespace Nagasari\Http;
 
-class RequestFile 
+class File 
 {
     public string $originalPath;
     public string $path;

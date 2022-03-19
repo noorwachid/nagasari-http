@@ -6,87 +6,70 @@ use Closure;
 
 class Router 
 {
-    private static array $routes = [];
-    private static array $pathMap = [];
-    private static string $groupPath = '';
-    private static string $fallbackController = '';
+    private array $routes = [];
+    private string $groupPath = '';
+    private string $fallbackController = '';
 
-    public static function set(string $path, string $controller): Route
+    public function add(string $path, string $controller): Route
     {
-        $route = new Route(self::$groupPath.$path, $controller);
-        self::$routes[] = $route;
+        $route = new Route($this->groupPath.$path, $controller);
+        $this->routes[] = $route;
         return $route;
     }
 
-    public static function group(string $path, Closure $callback): void
+    public function group(string $path, Closure $callback): void
     {
         $oldGroupPath = $path;
-        self::$groupPath .= $path;
+        $this->groupPath .= $path;
         $callback();
-        self::$groupPath = $oldGroupPath;
+        $this->groupPath = $oldGroupPath;
     }
 
-    public static function setKey($key, $path): void
+    public function setKey($key, $path): void
     {
-        self::$pathMap[$key] = $path;
+        $this->pathMap[$key] = $path;
     }
 
-    public static function setFallback(string $controller): void
+    public function setFallback(string $controller): void
     {
-        self::$fallbackController = $controller;
+        $this->fallbackController = $controller;
     }
 
-    public static function resolve(): void
+    public function resolve(Request $request): Response
     {
-        $request = new Request();
-        $request->receive();
-
-        foreach (self::$routes as $route) {
+        foreach ($this->routes as $route) {
             $pattern = self::composePatternFromPath($route->path);
             if (preg_match($pattern, $request->path, $matches)) {
-                $request->pathArgument = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                $request->attribute = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
 
                 if ($route->method === $request->method || 
                     $route->method === '*') {
-                    self::dispatch($route->controller, $request);
-                    return;
+                    
+                    return $this->dispatch($route->controller, $request);
                 }
             }
         }
 
-        self::dispatch(self::$fallbackController, $request);
-        return;
+        return $this->dispatch($this->fallbackController, $request);
     }
 
-    public static function compose(string $key, array $data = []): string
+    private function composePatternFromPath($path): string
     {
-        $needles = [];
-        $values = [];
-
-        foreach ($data as $key => $value) {
-            $needles[] = '{'.$key.'}';
-            $values[] = $value;
-        }
-
-        return str_replace($needles, $values, self::$pathMap[$key] ?? '');
-    }
-
-    private static function composePatternFromPath($path) {
         // replace / and {name} to valid regex
-        $path = str_replace(['/', '{', '}'], ['\/', '(?<', '>[^\/]+)'], $path);
+        $path = str_replace(
+            ['/',  '{',   ':*}',  ':num}',      ':alpha}',       ':alphanum}',       '}'], 
+            ['\/', '(?<', '>.*)', '>[0-9\.]+)', '>[A-Za-z-_]+)', '>[A-Za-z0-9-_\.]', '>[^\/]+)'], 
+            $path
+        );
         $path = '/^'.$path.'$/';
 
         return $path;
     }
 
-    private static function dispatch(string $controller, Request $request): void
+    private function dispatch(string $controller, Request $request): Response 
     {
         $controller = new $controller;
-        $middlewareManager = new MiddlewareManager($controller->middlewares);
-        $response = $middlewareManager->peel($request, function ($request) use ($controller) 
-        {
-            return $controller->resolve($request);
-        });
-        $response->send();
+
+        return $controller->dispatch($request);
     }
 }

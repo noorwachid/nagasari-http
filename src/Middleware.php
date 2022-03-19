@@ -11,3 +11,4 @@ class Middleware
         return $next($request);
     }
 }
+
