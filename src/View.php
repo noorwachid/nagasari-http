@@ -1,18 +1,18 @@
 <?php
 
-namespace Nagasari\Message;
+namespace Nagasari\Http;
 
 class View extends Response
 {
     private string $basePath;
 
-    private array $sectionStack;
-    private array $sectionMap;
+    private array $stack;
+    private array $map;
 
     public function __construct(string $path, array $data = [])
     {
-        $this->sectionStack = [];
-        $this->sectionMap = [];
+        $this->stack = [];
+        $this->map = [];
 
         extract($data);
         
@@ -34,23 +34,23 @@ class View extends Response
 
     private function begin(string $section): void
     {
-        $this->sectionStack[] = $section;
+        $this->stack[] = $section;
         ob_start();
     }
 
     private function end(): void
     {
-        $this->sectionMap[array_pop($this->sectionStack)] = ob_get_clean();
+        $this->map[array_pop($this->stack)] = ob_get_clean();
     }
 
     private function set(string $section, string $value): void
     {
-        $this->sectionMap[$section] = $value;
+        $this->map[$section] = $value;
     }
 
     private function get(string $section, string $fallbackValue = ''): string 
     {
-        return $this->sectionMap[$section] ?? '';
+        return $this->map[$section] ?? $fallbackValue;
     }
 
     private function escape(string $rawBuffer): string 
