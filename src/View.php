@@ -9,7 +9,7 @@ class View extends Response
     private array $stack;
     private array $map;
 
-    public function __construct(string $path, array $data = [])
+    public function __Construct(string $path, array $data = [])
     {
         $this->stack = [];
         $this->map = [];
@@ -27,33 +27,33 @@ class View extends Response
         parent::__construct(ob_get_clean());
     }
 
-    private function use(string $path): void
+    private function Use(string $path): void
     {
         $this->basePath = $path;
     }
 
-    private function begin(string $section): void
+    private function Begin(string $section): void
     {
         $this->stack[] = $section;
         ob_start();
     }
 
-    private function end(): void
+    private function End(): void
     {
         $this->map[array_pop($this->stack)] = ob_get_clean();
     }
 
-    private function set(string $section, string $value): void
+    private function Set(string $section, string $value): void
     {
         $this->map[$section] = $value;
     }
 
-    private function get(string $section, string $fallbackValue = ''): string 
+    private function Get(string $section, string $fallbackValue = ''): string 
     {
         return $this->map[$section] ?? $fallbackValue;
     }
 
-    private function escape(string $rawBuffer): string 
+    private function Escape(string $rawBuffer): string 
     {
         return htmlentities($rawBuffer);
     }

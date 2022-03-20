@@ -4,19 +4,19 @@ namespace Nagasari\Http;
 
 class File 
 {
-    public string $originalPath;
-    public string $path;
-    public string $size;
-    public string $type;
-    public string $errorCode;
+    public string $OriginalPath;
+    public string $Path;
+    public string $Size;
+    public string $Type;
+    public string $ErrorCode;
 
-    public function __construct(string $originalPath, string $path, string $type, string $size, string $errorCode)
+    public function __Construct(string $originalPath, string $path, string $type, string $size, string $errorCode)
     {
-        $this->originalPath = $originalPath;
-        $this->path = $path;
-        $this->size = $size;
-        $this->type = $type;
-        $this->errorCode = $errorCode;
+        $this->OriginalPath = $originalPath;
+        $this->Path = $path;
+        $this->Size = $size;
+        $this->Type = $type;
+        $this->ErrorCode = $errorCode;
     }
 
     public function move(string $path, array $options = []): bool
@@ -41,11 +41,11 @@ class File
             return false;
         }
 
-        if (!move_uploaded_file($this->path, $newPath)) {
+        if (!move_uploaded_file($this->Path, $newPath)) {
             return false;
         }
 
-        $this->path = $newPath;
+        $this->Path = $newPath;
         return true;
     }
 }

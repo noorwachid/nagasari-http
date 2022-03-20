@@ -4,7 +4,7 @@ namespace Nagasari\Http;
 
 class FormData
 {
-    public function composePostMethod(): array
+    public function CreatePostMethod(): array
     {
         // swap second keys
         $rootNode = [];
@@ -15,7 +15,7 @@ class FormData
         }
 
         // swap first and last keys
-        self::walk($_POST, $rootNode['name'], $rootNode['tmp_name'], $rootNode['type'], $rootNode['size'], $rootNode['error']);
+        $this->Walk($_POST, $rootNode['name'], $rootNode['tmp_name'], $rootNode['type'], $rootNode['size'], $rootNode['error']);
 
         // remove unused variable
         unset($rootNode);
@@ -23,7 +23,7 @@ class FormData
         return $_POST;
     }
 
-    public static function composeNotPostMethod(): array
+    public function CreateNotPostMethod(): array
     {
         // TODO: fix if the request is list then index
         //
@@ -86,7 +86,7 @@ class FormData
 
                     $errorCode = file_put_contents($path, $body);
 
-                    self::placeInBody($key, new File(
+                    $this->PlaceInContent($key, new File(
                         $originalPath, $path, $type, strlen($body), $errorCode
                     ));
                 }
@@ -94,7 +94,7 @@ class FormData
                 // text field
                 else {
                     $value = substr($body, 0, strlen($body) - 2); // \r\n
-                    self::placeInBody($key, $value);
+                    $this->PlaceInContent($key, $value);
                 }
             }
         }
@@ -102,18 +102,18 @@ class FormData
         return $_POST;
     }
 
-    private static function walk(&$value, &$originalPath, &$path, &$type, &$size, &$errorCode): void
+    private function Walk(&$value, &$originalPath, &$path, &$type, &$size, &$errorCode): void
     {
         if (is_array($originalPath)) {
             foreach ($originalPath as $key => &$originalPathChild) {
-                self::walk($value[$key], $originalPathChild, $path[$key], $type[$key], $size[$key], $errorCode[$key]);
+                $this->Walk($value[$key], $originalPathChild, $path[$key], $type[$key], $size[$key], $errorCode[$key]);
             }
         } else {
             $value = new File($originalPath, $path, $type, $size, $errorCode);
         }
     }
 
-    private static function placeInBody(string $key, string|File $value)
+    private function PlaceInContent(string $key, string|File $value)
     {
         $keys =  explode('[', str_replace(']', '', $key));
         $previous = null;

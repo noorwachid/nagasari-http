@@ -6,12 +6,12 @@ class Controller
 {
     protected array $middlewares = [];
 
-    protected function resolve(Request $request): Response
+    protected function Resolve(Request $request): Response
     {
         return new Response('');
     }
 
-    public function dispatch(Request $request): Response
+    public function Dispatch(Request $request): Response
     {
         // don't bother create middlewares
         if (empty($this->middlewares)) {

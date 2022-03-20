@@ -4,31 +4,31 @@ namespace Nagasari\Http;
 
 class Response 
 {
-    public int $statusCode;
-    public array $header;
-    public $content;
+    public int $StatusCode;
+    public array $Header;
+    public $Content;
 
-    public function __construct($content = '')
+    public function __Construct($content = '')
     {
-        $this->statusCode = 200;
-        $this->header = [];
-        $this->content = $content;
+        $this->StatusCode = 200;
+        $this->Header = [];
+        $this->Content = $content;
     }
 
-    public function send(): void
+    public function Send(): void
     {
-        http_response_code($this->statusCode);
+        http_response_code($this->StatusCode);
 
         // if the content is not string we assume you meant to send api
-        if (!is_string($this->content)) {
-            $this->header['Content-Type'] = 'application/json; charset=utf-8';
-            $this->content = json_encode($this->content);
+        if (!is_string($this->Content)) {
+            $this->Header['Content-Type'] = 'application/json; charset=utf-8';
+            $this->Content = json_encode($this->Content);
         }
 
-        foreach ($this->header as $key => $value) {
+        foreach ($this->Header as $key => $value) {
             header($key.': '.$value);
         }
 
-        echo $this->content;
+        echo $this->Content;
     }
 }

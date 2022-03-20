@@ -6,36 +6,37 @@ use Closure;
 
 class Route
 {
-    public string $key;
-    public string $method;
-    public string $path;
-    public string $controller;
+    public string $Key;
+    public string $Method;
+    public string $Path;
+    public string $Controller;
 
-    public function __construct(string $path, string $controller)
+    public function __Construct(string $path, string $controller)
     {
-        $this->key = '';
-        $this->method = '*';
-        $this->path = $path;
-        $this->controller = $controller;
+        $this->Key = '';
+        $this->Method = '*';
+        $this->Path = $path;
+        $this->Controller = $controller;
     }
 
-    public function setKey(string $key): self
+    public function SetKey(string $key): self
     {
-        $this->key = $key;
+        $this->Key = $key;
 
-        self::$map[$this->key] = str_replace(
+        self::$map[$this->Key] = str_replace(
             // remove all specifier
             [':*}', ':num}', ':alpha}', ':alphanum}'],
             ['}',   '}',     '}',       '}'], 
-            $this->path
+            $this->Path
         );
 
         return $this;
     }
 
-    public function setMethod(string $method): self
+    public function SetMethod(string $method): self
     {
-        $this->method = $method;
+        $this->Method = $method;
+
         return $this;
     }
 
@@ -46,7 +47,7 @@ class Route
     private static string $pathPrefix = '';
     private static string $fallbackController = '';
 
-    public static function get(string $key, array $data = []): string
+    public static function Get(string $key, array $data = []): string
     {
         $needles = [];
         $values = [];
@@ -59,12 +60,12 @@ class Route
         return str_replace($needles, $values, self::$map[$key] ?? '');
     }
 
-    public static function set(string $path, string $controller): self
+    public static function Set(string $path, string $controller): self
     {
         return self::$vector[] = new Route(self::$pathPrefix.$path, $controller);
     }
 
-    public static function group(string $path, Closure $callback): void
+    public static function Group(string $path, Closure $callback): void
     {
         $pathPrefix = $path;
         self::$pathPrefix .= $path;
@@ -72,35 +73,35 @@ class Route
         self::$pathPrefix = $pathPrefix;
     }
 
-    public static function setFallback(string $controller): void
+    public static function SetFallback(string $controller): void
     {
         self::$fallbackController = $controller;
     }
 
-    public static function resolve(): void
+    public static function Resolve(): void
     {
         $request = new Request();
-        $request->receive();
+        $request->Receive();
 
         foreach (self::$vector as $route) {
-            $pattern = self::composePatternFromPath($route->path);
-            if (preg_match($pattern, $request->path, $matches)) {
-                $request->pathAttribute = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+            $pattern = self::CreatePatternFromPath($route->Path);
+            if (preg_match($pattern, $request->Path, $matches)) {
+                $request->PathAttribute = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
 
-                if ($route->method === $request->method || 
-                    $route->method === '*') {
+                if ($route->Method === $request->Method || 
+                    $route->Method === '*') {
                     
-                    self::dispatch($route->controller, $request);
+                    self::Dispatch($route->Controller, $request);
                     return;
                 }
             }
         }
 
-        self::dispatch(self::$fallbackController, $request);
+        self::Dispatch(self::$fallbackController, $request);
         return;
     }
 
-    private static function composePatternFromPath($path): string
+    private static function CreatePatternFromPath(string $path): string
     {
         // replace / and {name} to valid regex
         $path = str_replace(
@@ -113,10 +114,10 @@ class Route
         return $path;
     }
 
-    private static function dispatch(string $controller, Request $request): void
+    private static function Dispatch(string $controller, Request $request): void
     {
         $controller = new $controller;
-        $response = $controller->dispatch($request);
-        $response->send();
+        $response = $controller->Dispatch($request);
+        $response->Send();
     }
 }
